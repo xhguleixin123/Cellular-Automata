@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import animation
 
 
 class Autocell(object):
@@ -9,6 +10,7 @@ class Autocell(object):
     height ： 元胞数组的宽度
     从而实例化 cells 元胞数组
     """
+
     def __init__(self, width, height):
         self.width = width
         self.height = height
@@ -19,38 +21,46 @@ class Autocell(object):
     周围3个重生变为1
     周围2个且为1，则为1
     """
+
     def next_gengeration(self):
-        nbrs_count = sum(np.roll(np.roll(self.cells, i, 0), j, 1)
-                         for i in (-1, 0, 1) for j in (-1, 0, 1)
-                         if (i != 0 or j != 0))
+        nbrs_count = sum(np.roll(np.roll(self.cells, n, 0), m, 1)
+                         for n in (-1, 0, 1) for m in (-1, 0, 1)
+                         if (n != 0 or m != 0))
         self.cells = (nbrs_count == 3) | ((self.cells == 1) & (nbrs_count == 2)).astype('int')
 
     """
     画元胞数组
     """
-    def plot_current_cells(self, iters):
-        ax = plt.gca()
+    def display_animation(self):
+        plt.fig, ax = plt.subplots()
         ax.patch.set_facecolor('gray')
         ax.set_aspect('equal', 'box')
 
-        # ax.xaxis.set_major_locator(plt.NullLocator())
-        # ax.yaxis.set_major_locator(plt.NullLocator())
-        plt.ion()
-        for i in range(iters):
+
+        def update_ax(i):
             ax.cla()
-            plt.xticks(())
-            plt.yticks(())
-            for i in range(self.width):
-                for j in range(self.height):
-                    color = 'gray' if not self.cells[i, j] else 'black'
-                    rect = plt.Rectangle([i * 1.2 + 0.2, j * 1.2 + 2], 1, 1, facecolor=color, edgecolor=color)
+            label = 'timestep{0}'.format(i)
+            print(label)
+            ax.set_title(label)
+            # plt.xticks(())
+            # plt.yticks(())
+            ax.xaxis.set_major_locator(plt.NullLocator())
+            ax.yaxis.set_major_locator(plt.NullLocator())
+            for a in range(self.width):
+                for b in range(self.height):
+                    color = 'gray' if not self.cells[a, b] else 'black'
+                    rect = plt.Rectangle([a * 1.2 + 0.2, b * 1.2 + 2], 1, 1, facecolor=color, edgecolor=color)
                     ax.add_patch(rect)
-            ax.autoscale_view()
-            plt.show()
+                    ax.autoscale_view()
             self.next_gengeration()
-            plt.pause(0.2)
-        plt.ioff()
+            return ax
+
+        anim = animation.FuncAnimation(plt.fig, update_ax, frames=np.arange(0,10), interval=100)
+        plt.show()
+        # 保存gif
+        anim.save("./images/元胞自动机.gif", dpi=80, writer='pillow')
+
 
 if __name__ == '__main__':
-    autocell = Autocell(20,20)
-    autocell.plot_current_cells(20)
+    autocell = Autocell(20, 20)
+    autocell.display_animation()
