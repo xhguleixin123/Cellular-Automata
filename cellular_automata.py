@@ -52,5 +52,5 @@ class Autocell(object):
         plt.ioff()
 
 if __name__ == '__main__':
-    autocell = Autocell(10,20)
+    autocell = Autocell(20,20)
     autocell.plot_current_cells(20)
